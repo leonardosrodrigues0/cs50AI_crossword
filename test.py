@@ -1,12 +1,15 @@
-from crossword import Crossword
+# from crossword import Crossword
 
-cross = Crossword("data/structure0.txt", "data/words0.txt")
+# cross = Crossword("data/structure0.txt", "data/words0.txt")
 
-x = cross.variables.pop()
-y = cross.variables.pop()
+# x = cross.variables.pop()
+# y = cross.variables.pop()
 
-print(x, y)
+# print(x, y)
 
-i, j = cross.overlaps[x, y]
+# a = cross.overlaps[x, y]
+# print(a, a[0], a[1])
 
-print(i, j)
+a = {1: "bara", 20: "doido"}
+
+print(list(a.values()).count("doido"))

@@ -97,7 +97,7 @@ class CrosswordCreator():
         """
         Update `self.domains` such that each variable is node-consistent.
         (Remove any values that are inconsistent with a variable's unary
-         constraints; in this case, the length of the word.)
+        constraints; in this case, the length of the word.)
         """
         for var in self.domains:
             words_rem = list()
@@ -123,6 +123,7 @@ class CrosswordCreator():
         if pos is None:
             return False
 
+        # List of words to be removed from self.domains[x]
         words_rem = list()
 
         for x_word in self.domains[x]:
@@ -167,13 +168,15 @@ class CrosswordCreator():
             for x, y in [arc, arc[::-1]]:
                 revised = self.revise(x, y)
 
-                # If domain is empty:
+                # If domain is empty (impossible):
                 if not self.domains[x]:
                     return False
 
+                # Add arcs between x and its neighbors if x revised.
                 elif revised:
                     for neighbor in self.crossword.neighbors(x):
-                        arcs.append((x, neighbor))
+                        if (x, neighbor) not in arcs and (neighbor, x) not in arcs:
+                            arcs.append((x, neighbor))
 
         return True
 
@@ -197,14 +200,15 @@ class CrosswordCreator():
             # Check for length consistency.
             if v.length != len(assignment[v]):
                 return False
-            
+
             # Check if common cells have the same letter.
             for neighbor in self.crossword.neighbors(v):
-                i, j = self.crossword.overlaps[v, neighbor]
+                if neighbor in assignment:
+                    i, j = self.crossword.overlaps[v, neighbor]
 
-                if assignment[v][i] != assignment[neighbor][j]:
-                    return False
-            
+                    if assignment[v][i] != assignment[neighbor][j]:
+                        return False
+
             # Check for duplicates.
             if list(assignment.values()).count(assignment[v]) > 1:
                 return False
@@ -218,7 +222,10 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+        # For implemenation by now, this function only returns any list:
+        # This function only speeds up the algorithm.
+        
+        return list(self.domains[var]).copy()
 
     def select_unassigned_variable(self, assignment):
         """
@@ -228,7 +235,14 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+        # For implemenation by now, this function only returns any variable:
+        # This function only speeds up the algorithm.
+
+        for var in self.crossword.variables:
+            if var not in assignment:
+                return var
+
+        return None
 
     def backtrack(self, assignment):
         """
@@ -239,7 +253,35 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if assignment is None:
+            return None
+
+        if self.assignment_complete(assignment):
+            return assignment
+
+        # Select a var to be assigned.
+        var = self.select_unassigned_variable(assignment)
+
+        # Creates a copy of the dict assignment:
+        new_assignment = assignment.copy()
+
+        for value in self.order_domain_values(var, assignment):
+
+            # Assign a value to var and recursevely calls self.backtrack.
+            new_assignment[var] = value
+
+            if self.consistent(new_assignment):
+                new_assignment = self.backtrack(new_assignment)
+
+                if new_assignment is not None:
+                    return new_assignment
+                
+                else:
+                    new_assignment = assignment.copy()
+
+        # Returns None if no value was valid.
+        return None
+
 
 
 def main():

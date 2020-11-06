@@ -235,14 +235,33 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        # For implemenation by now, this function only returns any variable:
-        # This function only speeds up the algorithm.
+        minimum = 10**6
 
         for var in self.crossword.variables:
             if var not in assignment:
-                return var
+                L = len(self.domains[var])
 
-        return None
+                if L < minimum:
+                    minimum = L
+                    variables = [var]
+
+                elif L == minimum:
+                    variables.append(var)
+
+        if len(variables) == 1:
+            return variables[0]
+
+        else:
+            maximum = 0
+
+            for var in variables:
+                N = len(self.crossword.neighbors(var))
+
+                if N > maximum:
+                    maximum = N
+                    chosen = var
+
+            return chosen
 
     def backtrack(self, assignment):
         """
@@ -286,27 +305,34 @@ class CrosswordCreator():
 
 def main():
 
-    # Check usage
-    if len(sys.argv) not in [3, 4]:
-        sys.exit("Usage: python generate.py structure words [output]")
+    # # Check usage
+    # if len(sys.argv) not in [3, 4]:
+    #     sys.exit("Usage: python generate.py structure words [output]")
 
-    # Parse command-line arguments
-    structure = sys.argv[1]
-    words = sys.argv[2]
+    # # Parse command-line arguments
+    # structure = sys.argv[1]
+    # words = sys.argv[2]
     output = sys.argv[3] if len(sys.argv) == 4 else None
 
-    # Generate crossword
-    crossword = Crossword(structure, words)
-    creator = CrosswordCreator(crossword)
-    assignment = creator.solve()
+    for i in range(3):
+        for j in range(3):
+            words =  'data/words' + str(i) + '.txt'
+            structure = 'data/structure' + str(j) + '.txt'
 
-    # Print result
-    if assignment is None:
-        print("No solution.")
-    else:
-        creator.print(assignment)
-        if output:
-            creator.save(assignment, output)
+            print(words, structure)
+
+            # Generate crossword
+            crossword = Crossword(structure, words)
+            creator = CrosswordCreator(crossword)
+            assignment = creator.solve()
+
+            # Print result
+            if assignment is None:
+                print("No solution.")
+            else:
+                creator.print(assignment)
+                if output:
+                    creator.save(assignment, output)
 
 
 if __name__ == "__main__":
